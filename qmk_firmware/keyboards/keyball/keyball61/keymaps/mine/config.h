@@ -37,3 +37,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define POINTING_DEVICE_AUTO_MOUSE_ENABLE
 #define AUTO_MOUSE_DEFAULT_LAYER 2
+
+// スクロールスナップ無効化
+#define KEYBALL_SCROLLSNAP_ENABLE 0
+
+// shiftのダブルタップで大文字入力
+// #define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
+// 左右shift同時押しで大文字入力
+// #define BOTH_SHIFTS_TURNS_ON_CAPS_WORD
