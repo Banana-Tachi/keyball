@@ -20,14 +20,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "quantum.h"
 
+// 自作キーコード
+enum custom_keycodes {
+    LT_LCTL_SPC = SAFE_RANGE, // Tap/Hold: IME/Layer1 
+};
+
+static bool layer_1_active = false;
+static uint16_t lt_timer;
+
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LT_LCTL_SPC: // Tap/Hold: IME/Layer1
+            if (record->event.pressed) {
+                // キーを押した時
+                layer_1_active = true;
+                layer_on(1);  // レイヤー1をオン
+                lt_timer = timer_read();
+                return false;
+            } else {
+                // キーを離した時
+                layer_1_active = false;
+                layer_off(1); // レイヤー1をオフ
+                
+                if (timer_elapsed(lt_timer) < TAPPING_TERM) {
+                    // タップした場合（素早く押し離した場合）
+                    tap_code16(LCTL(KC_SPACE));
+                }
+                return false;
+            }
+            break;
+    }
+    return true;
+}
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_universal(
-    KC_GRV , KC_1   , KC_2   , KC_3        , KC_4           , KC_5  ,                               KC_6   , KC_7   , KC_8   , KC_9   , KC_0         , KC_EQL ,
-    KC_TAB , KC_Q   , KC_W   , KC_E        , KC_R           , KC_T  ,                               KC_Y   , KC_U   , KC_I   , KC_O   , KC_P         , KC_MINS,
-    KC_LSFT, KC_A   , KC_S   , KC_D        , KC_F           , KC_G  ,                               KC_H   , KC_J   , KC_K   , KC_L   , KC_SCLN      , KC_QUOT,
-    KC_LCTL, KC_Z   , KC_X   , KC_C        , KC_V           , KC_B  , LT(3,KC_LBRC), LT(3,KC_RBRC), KC_N   , KC_M   , KC_COMM, KC_DOT , LT(2,KC_SLSH), KC_RSFT,
-    MO(2)  , KC_LWIN, KC_LALT, LT(1,KC_ESC), C(KC_SPC)      , KC_SPC, MO(2)        , KC_ENT       , KC_BSPC, KC_NO  , KC_NO  , KC_NO  , LT(1,KC_BSLS), KC_RCTL
+    KC_GRV , KC_1   , KC_2   , KC_3        , KC_4       , KC_5  ,                               KC_6   , KC_7   , KC_8   , KC_9   , KC_0         , KC_EQL ,
+    KC_TAB , KC_Q   , KC_W   , KC_E        , KC_R       , KC_T  ,                               KC_Y   , KC_U   , KC_I   , KC_O   , KC_P         , KC_MINS,
+    KC_LSFT, KC_A   , KC_S   , KC_D        , KC_F       , KC_G  ,                               KC_H   , KC_J   , KC_K   , KC_L   , KC_SCLN      , KC_QUOT,
+    KC_LCTL, KC_Z   , KC_X   , KC_C        , KC_V       , KC_B  , LT(3,KC_LBRC), LT(3,KC_RBRC), KC_N   , KC_M   , KC_COMM, KC_DOT , LT(2,KC_SLSH), KC_RSFT,
+    MO(2)  , KC_LWIN, KC_LALT, LT(1,KC_ESC), LT_LCTL_SPC, KC_SPC, MO(2)        , KC_ENT       , KC_BSPC, KC_NO  , KC_NO  , KC_NO  , LT(1,KC_BSLS), KC_RCTL
   ),
 
   [1] = LAYOUT_universal(
