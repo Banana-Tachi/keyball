@@ -41,6 +41,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // スクロールスナップ無効化
 #define KEYBALL_SCROLLSNAP_ENABLE 0
 
+// デフォルトスクロール速度変更
+#define KEYBALL_SCROLL_DIV_DEFAULT 5 // スクロール速度 (default: 4)
+
+// OLED自動消灯時間 [ms]
+#define OLED_TIMEOUT 20000 // ミリ秒
+
 // shiftのダブルタップで大文字入力
 // #define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
 // 左右shift同時押しで大文字入力
