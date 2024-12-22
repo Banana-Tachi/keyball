@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "quantum.h"
 
+#include "./custom_oled.h"
+
 // 自作キーコード
 enum custom_keycodes {
     LT_LCTL_SPC = SAFE_RANGE, // Tap/Hold: IME/Layer1 
@@ -100,9 +102,154 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 
 #    include "lib/oledkit/oledkit.h"
 
+// 向き変更
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    if (is_keyboard_master()) {
+        return OLED_ROTATION_270;
+    }
+    return rotation;
+}
+
+static const char LFSTR_ON[] PROGMEM = "\xB2\xB3";
+static const char LFSTR_OFF[] PROGMEM = "\xB4\xB5";
+
+static char to_1x(uint8_t x) {
+    x &= 0x0f;
+    return x < 10 ? x + '0' : x + 'a' - 10;
+}
+static const char *format_4d(int8_t d) {
+    static char buf[5] = {0}; // max width (4) + NUL (1)
+    char        lead   = ' ';
+    if (d < 0) {
+        d    = -d;
+        lead = '-';
+    }
+    buf[3] = (d % 10) + '0';
+    d /= 10;
+    if (d == 0) {
+        buf[2] = lead;
+        lead   = ' ';
+    } else {
+        buf[2] = (d % 10) + '0';
+        d /= 10;
+    }
+    if (d == 0) {
+        buf[1] = lead;
+        lead   = ' ';
+    } else {
+        buf[1] = (d % 10) + '0';
+        d /= 10;
+    }
+    buf[0] = lead;
+    return buf;
+}
+static const char *itoc(uint8_t number, uint8_t width) {
+    static char str[5]; 
+    uint8_t i = 0;
+    width = width > 4 ? 4 : width;
+
+    do {
+        str[i++] = number % 10 + '0';
+        number /= 10;
+    } while (number != 0);
+
+    while (i < width) {
+        str[i++] = ' ';
+    }
+
+    int len = i;
+    for (int j = 0; j < len / 2; j++) {
+        char temp = str[j];
+        str[j] = str[len - j - 1];
+        str[len - j - 1] = temp;
+    }
+
+    str[i] = '\0';
+    return str;
+}
+
+void my_oled_keyinfo(void) {
+    // "Key" Label
+    oled_write_P(PSTR("Key\n"), false);
+    // Row and column
+    oled_write_P(PSTR(" "), false);
+    oled_write_char('\xB8', false);
+    oled_write_char(to_1x(keyball.last_pos.row), false);
+    oled_write_char('\xB9', false);
+    oled_write_char(to_1x(keyball.last_pos.col), false);
+    // Keycode
+    oled_write_P(PSTR(" "), false);
+    oled_write_P(PSTR("\xBA\xBB"), false);
+    oled_write_char(to_1x(keyball.last_kc >> 4), false);
+    oled_write_char(to_1x(keyball.last_kc), false);
+    // Pressing keys
+    oled_write_char(keyball.pressing_keys[0], false);
+    oled_write_char(keyball.pressing_keys[1], false);
+    oled_write_char(keyball.pressing_keys[2], false);
+    oled_write_char(keyball.pressing_keys[3], false);
+    oled_write_char(keyball.pressing_keys[4], false);
+}
+
+void my_oled_ballinfo(void) {
+    // 1st line, "Ball" label, mouse x, y, h, and v.
+    oled_write_P(PSTR("Ball\n"), false);
+    if(keyball.scroll_mode){
+      oled_write_P(PSTR(" "), false);
+      oled_write(format_4d(keyball.last_mouse.h), false);
+      oled_write_P(PSTR(" "), false);
+      oled_write(format_4d(keyball.last_mouse.v), false);
+    }else{
+      oled_write_P(PSTR(" "), false);
+      oled_write(format_4d(keyball.last_mouse.x), false);
+      oled_write_P(PSTR(" "), false);
+      oled_write(format_4d(keyball.last_mouse.y), false);
+    }
+
+    // 2nd line, empty label and CPI
+    oled_write_P(PSTR(" "), false);
+    oled_write(itoc(keyball_get_cpi(),3) + 1, false);
+    oled_write_P(PSTR("00"), false);
+
+    // indicate scroll divider:
+    oled_write_P(PSTR(" \xC0\xC1 "), false);
+    oled_write_char('0' + keyball_get_scroll_div(), false);
+    oled_write_P(PSTR(" \xBE\xBF"), false);
+    // indicate scroll mode: on/off
+    if (keyball.scroll_mode) {
+        oled_write_P(LFSTR_ON, false);
+    } else {
+        oled_write_P(LFSTR_OFF, false);
+    }
+    // pointing device auto mouse
+    oled_write_P(PSTR(" \xC2\xC3"), false);
+    if (get_auto_mouse_enable()) {
+        oled_write_P(LFSTR_ON, false);
+    } else {
+        oled_write_P(LFSTR_OFF, false);
+    }
+}
+
+void my_oled_layerinfo(void) {
+    // if     (is_layer_locked(0)) oled_write_raw_P(img_0, sizeof(img_0));
+    // else if(is_layer_locked(1)) oled_write_raw_P(img_1, sizeof(img_1));
+    // else if(is_layer_locked(2)) oled_write_raw_P(img_2, sizeof(img_2));
+    // else if(is_layer_locked(3)) oled_write_raw_P(img_3, sizeof(img_3));
+
+    switch (get_highest_layer(layer_state)) {
+        case 0:  oled_write_raw_P(img_0, sizeof(img_0)); break;
+        case 1:  oled_write_raw_P(img_1, sizeof(img_1)); break;
+        case 2:  oled_write_raw_P(img_2, sizeof(img_2)); break;
+        case 3:  oled_write_raw_P(img_3, sizeof(img_3)); break;
+        default: break;
+    }
+}
+
 void oledkit_render_info_user(void) {
-    keyball_oled_render_keyinfo();
-    keyball_oled_render_ballinfo();
-    keyball_oled_render_layerinfo();
+    // keyball_oled_render_keyinfo();
+    // keyball_oled_render_ballinfo();
+    // keyball_oled_render_layerinfo();
+    my_oled_keyinfo();
+    my_oled_ballinfo();
+    my_oled_layerinfo();
 }
 #endif
