@@ -130,97 +130,67 @@ static char to_1x(uint8_t x) {
     x &= 0x0f;
     return x < 10 ? x + '0' : x + 'a' - 10;
 }
-static const char *format_4d(int8_t d) {
-    static char buf[5] = {0}; // max width (4) + NUL (1)
-    char        lead   = ' ';
-    if (d < 0) {
-        d    = -d;
-        lead = '-';
-    }
-    buf[3] = (d % 10) + '0';
-    d /= 10;
-    if (d == 0) {
-        buf[2] = lead;
-        lead   = ' ';
-    } else {
-        buf[2] = (d % 10) + '0';
-        d /= 10;
-    }
-    if (d == 0) {
-        buf[1] = lead;
-        lead   = ' ';
-    } else {
-        buf[1] = (d % 10) + '0';
-        d /= 10;
-    }
-    buf[0] = lead;
-    return buf;
-}
-static const char *itoc(uint8_t number, uint8_t width) {
-    static char str[5]; 
-    uint8_t i = 0;
-    width = width > 4 ? 4 : width;
-
+static const char *format_num(int16_t num, uint8_t width) {
+    static char buf[5];
+    char *p = &buf[sizeof(buf) - 1];
+    *p = '\0';
+    
+    uint16_t n = num < 0 ? -num : num;
     do {
-        str[i++] = number % 10 + '0';
-        number /= 10;
-    } while (number != 0);
-
-    while (i < width) {
-        str[i++] = ' ';
+        *--p = (n % 10) + '0';
+        n /= 10;
+        width--;
+    } while (n > 0 && p > buf);
+    
+    if (num < 0 && p > buf) {
+        *--p = '-';
+        width--;
     }
-
-    int len = i;
-    for (int j = 0; j < len / 2; j++) {
-        char temp = str[j];
-        str[j] = str[len - j - 1];
-        str[len - j - 1] = temp;
+    
+    while (width > 0 && p > buf) {
+        *--p = ' ';
+        width--;
     }
-
-    str[i] = '\0';
-    return str;
+    
+    return p;
 }
 
 void my_oled_keyinfo(void) {
     // "Key" Label
-    oled_write_P(PSTR("Key\n"), false);
+    oled_write_P(PSTR("Key\n "), false);
     // Row and column
-    oled_write_P(PSTR(" "), false);
     oled_write_char('\xB8', false);
     oled_write_char(to_1x(keyball.last_pos.row), false);
     oled_write_char('\xB9', false);
     oled_write_char(to_1x(keyball.last_pos.col), false);
     // Keycode
-    oled_write_P(PSTR(" "), false);
-    oled_write_P(PSTR("\xBA\xBB"), false);
+    oled_write_P(PSTR(" \xBA\xBB"), false);
     oled_write_char(to_1x(keyball.last_kc >> 4), false);
     oled_write_char(to_1x(keyball.last_kc), false);
     // Pressing keys
+    oled_write_char(' ', false);
     oled_write_char(keyball.pressing_keys[0], false);
     oled_write_char(keyball.pressing_keys[1], false);
     oled_write_char(keyball.pressing_keys[2], false);
     oled_write_char(keyball.pressing_keys[3], false);
-    oled_write_char(keyball.pressing_keys[4], false);
 }
 
 void my_oled_ballinfo(void) {
     // 1st line, "Ball" label, mouse x, y, h, and v.
-    oled_write_P(PSTR("Ball\n"), false);
+    oled_write_P(PSTR("Ball\n "), false);
     if(keyball.scroll_mode){
-      oled_write_P(PSTR(" "), false);
-      oled_write(format_4d(keyball.last_mouse.h), false);
-      oled_write_P(PSTR(" "), false);
-      oled_write(format_4d(keyball.last_mouse.v), false);
+        oled_write(format_num(keyball.last_mouse.h, 4), false);
+        oled_write_char(' ', false);
+        oled_write(format_num(keyball.last_mouse.v, 4), false);
     }else{
-      oled_write_P(PSTR(" "), false);
-      oled_write(format_4d(keyball.last_mouse.x), false);
-      oled_write_P(PSTR(" "), false);
-      oled_write(format_4d(keyball.last_mouse.y), false);
+        oled_write(format_num(keyball.last_mouse.x, 4), false);
+        oled_write_char(' ', false);
+        oled_write(format_num(keyball.last_mouse.y, 4), false);
     }
 
     // 2nd line, empty label and CPI
-    oled_write_P(PSTR(" "), false);
-    oled_write(itoc(keyball_get_cpi(),3) + 1, false);
+    oled_write_char(' ', false);
+    oled_write(format_num(keyball_get_cpi(),3) + 1, false);
     oled_write_P(PSTR("00"), false);
 
     // indicate scroll divider:
@@ -228,35 +198,24 @@ void my_oled_ballinfo(void) {
     oled_write_char('0' + keyball_get_scroll_div(), false);
     oled_write_P(PSTR(" \xBE\xBF"), false);
     // indicate scroll mode: on/off
-    if (keyball.scroll_mode) {
-        oled_write_P(LFSTR_ON, false);
-    } else {
-        oled_write_P(LFSTR_OFF, false);
-    }
+    oled_write_P(keyball.scroll_mode ? LFSTR_ON : LFSTR_OFF, false);
     // pointing device auto mouse
     oled_write_P(PSTR(" \xC2\xC3"), false);
-    if (get_auto_mouse_enable()) {
-        oled_write_P(LFSTR_ON, false);
-    } else {
-        oled_write_P(LFSTR_OFF, false);
-    }
+    oled_write_P(get_auto_mouse_enable() ? LFSTR_ON : LFSTR_OFF, false);
 }
 
 void my_oled_layerinfo(void) {
-    if     (is_caps_word_on())  oled_write_raw_P(img_S    , sizeof(img_S));
-    else if(is_layer_locked(0)) oled_write_raw_P(img_0_box, sizeof(img_0_box));
-    else if(is_layer_locked(1)) oled_write_raw_P(img_1_box, sizeof(img_1_box));
-    else if(is_layer_locked(2)) oled_write_raw_P(img_2_box, sizeof(img_2_box));
-    else if(is_layer_locked(3)) oled_write_raw_P(img_3_box, sizeof(img_3_box));
-    else{
-        switch (get_highest_layer(layer_state)) {
-            case 0:  oled_write_raw_P(img_0, sizeof(img_0)); break;
-            case 1:  oled_write_raw_P(img_1, sizeof(img_1)); break;
-            case 2:  oled_write_raw_P(img_2, sizeof(img_2)); break;
-            case 3:  oled_write_raw_P(img_3, sizeof(img_3)); break;
-            default: break;
-        }
+    const char *img;
+    if      (is_caps_word_on())  img = img_S;
+    else if (is_layer_locked(0)) img = img_0_box;
+    else if (is_layer_locked(1)) img = img_1_box;
+    else if (is_layer_locked(2)) img = img_2_box;
+    else if (is_layer_locked(3)) img = img_3_box;
+    else {
+        static const char *const layer_imgs[] = {img_0, img_1, img_2, img_3};
+        img = layer_imgs[get_highest_layer(layer_state)];
     }
+    oled_write_raw_P(img, sizeof(img_0)); // 全ての画像は同じサイズと仮定
 }
 
 void oledkit_render_info_user(void) {
