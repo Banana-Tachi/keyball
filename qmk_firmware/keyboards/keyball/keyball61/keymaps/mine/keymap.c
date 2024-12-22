@@ -21,10 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 
 #include "./custom_oled.h"
+#include "./layer_lock.h"
 
 // 自作キーコード
 enum custom_keycodes {
     LT_LCTL_SPC = SAFE_RANGE, // Tap/Hold: IME/Layer1 
+    LLOCK,
 };
 
 static bool layer_1_active = false;
@@ -32,18 +34,25 @@ static uint16_t lt_timer;
 
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (!process_layer_lock(keycode, record, LLOCK)) {
+        return false;
+    }
     switch (keycode) {
-        case LT_LCTL_SPC: // Tap/Hold: IME/Layer1
+        case LT_LCTL_SPC:
             if (record->event.pressed) {
                 // キーを押した時
-                layer_1_active = true;
-                layer_on(1);  // レイヤー1をオン
+                if (!is_layer_locked(1)) {  // レイヤー1がロックされていない場合のみ
+                    layer_1_active = true;
+                    layer_on(1);  // レイヤー1をオン
+                }
                 lt_timer = timer_read();
                 return false;
             } else {
                 // キーを離した時
-                layer_1_active = false;
-                layer_off(1); // レイヤー1をオフ
+                if (!is_layer_locked(1)) {  // レイヤー1がロックされていない場合のみ
+                    layer_1_active = false;
+                    layer_off(1); // レイヤー1をオフ
+                }
                 
                 if (timer_elapsed(lt_timer) < TAPPING_TERM) {
                     // タップした場合（素早く押し離した場合）
@@ -63,7 +72,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB , KC_Q   , KC_W   , KC_E        , KC_R       , KC_T  ,                               KC_Y   , KC_U   , KC_I   , KC_O   , KC_P         , KC_MINS,
     KC_LSFT, KC_A   , KC_S   , KC_D        , KC_F       , KC_G  ,                               KC_H   , KC_J   , KC_K   , KC_L   , KC_SCLN      , KC_QUOT,
     KC_LCTL, KC_Z   , KC_X   , KC_C        , KC_V       , KC_B  , LT(3,KC_LBRC), LT(3,KC_RBRC), KC_N   , KC_M   , KC_COMM, KC_DOT , LT(2,KC_SLSH), KC_RSFT,
-    MO(2)  , KC_LWIN, KC_LALT, LT(1,KC_ESC), LT_LCTL_SPC, KC_SPC, MO(2)        , KC_ENT       , KC_BSPC, KC_NO  , KC_NO  , KC_NO  , LT(1,KC_BSLS), KC_RCTL
+    KC_LCTL, KC_LWIN, KC_LALT, LT(1,KC_ESC), LT_LCTL_SPC, KC_SPC, MO(2)        , KC_ENT       , KC_BSPC, KC_NO  , KC_NO  , KC_NO  , LT(1,KC_BSLS), KC_RCTL
   ),
 
   [1] = LAYOUT_universal(
@@ -71,7 +80,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, KC_PSLS, KC_7 , KC_8  , KC_9   , KC_PPLS,                   KC_LBRC, KC_RBRC,S(KC_LBRC),S(KC_RBRC), KC_PSCR, KC_F12 ,
     _______, _______, KC_4 , KC_5  , KC_6   , KC_PMNS,                   KC_LEFT, KC_DOWN,  KC_UP   ,  KC_RGHT , _______, _______,
     _______, _______, KC_1 , KC_2  , KC_3   , KC_PENT, KC_PAST, KC_DEL , S(KC_9), S(KC_0),  _______ , _______  , _______, _______,
-    _______, _______, KC_0 , KC_DOT, _______, _______, _______, _______, _______, _______,  _______ , _______  , _______, _______
+    LLOCK  , _______, KC_0 , KC_DOT, _______, _______, _______, _______, _______, _______,  _______ , _______  , _______, _______
   ),
 
   [2] = LAYOUT_universal(
@@ -79,7 +88,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, KC_Q   , KC_W   , KC_BRID     , KC_BRIU, KC_T   ,                                CPI_D1K   , CPI_D100  , CPI_I100, CPI_I1K , SCRL_DVD, KC_MINS,
     _______, _______, KC_MUTE, KC_VOLD     , KC_VOLU, KC_G   ,                                AML_TO    , KC_BTN1   , SCRL_MO , KC_BTN2 , SCRL_DVI, _______,
     _______, _______, KC_X   , KC_C        , KC_V   , KC_B   , LT(3,KC_LBRC), LT(3,KC_RBRC) , A(KC_RGHT), A(KC_LEFT), KC_BTN3 , KC_NO   , KC_NO   , _______,
-    _______, _______, KC_LALT, LT(1,KC_ESC), _______, _______, _______      , _______       , _______   , _______   , _______ , _______ , _______ , _______
+    LLOCK  , _______, KC_LALT, LT(1,KC_ESC), _______, _______, _______      , _______       , _______   , _______   , _______ , _______ , _______ , _______
   ),
 
   [3] = LAYOUT_universal(
@@ -87,7 +96,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     S(KC_GRV), S(KC_1), S(KC_2), S(KC_3), S(KC_4), S(KC_5),                  S(KC_6), S(KC_7), S(KC_8), S(KC_9), S(KC_0), S(KC_EQL) ,
       KC_GRV ,   KC_1 ,   KC_2 ,   KC_3 ,   KC_4 ,   KC_5 ,                    KC_6 ,   KC_7 ,   KC_8 ,   KC_9 ,   KC_0 , KC_EQL ,
     _______  ,   KC_F1,   KC_F2,   KC_F3,   KC_F4,  KC_F5 , _______, _______,  KC_F6,   KC_F7,   KC_F8,   KC_F9,  KC_F10, KC_MINS ,
-    _______  , _______, _______, _______, _______, _______, _______, _______,_______, _______, _______, _______,  KC_F11, S(KC_MINS)
+    LLOCK    , _______, _______, _______, _______, _______, _______, _______,_______, _______, _______, _______,  KC_F11, S(KC_MINS)
   ),
 };
 // clang-format on
@@ -98,6 +107,10 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     return state;
 }
 
+
+//
+// oled系
+//
 #ifdef OLED_ENABLE
 
 #    include "lib/oledkit/oledkit.h"
@@ -230,17 +243,18 @@ void my_oled_ballinfo(void) {
 }
 
 void my_oled_layerinfo(void) {
-    // if     (is_layer_locked(0)) oled_write_raw_P(img_0, sizeof(img_0));
-    // else if(is_layer_locked(1)) oled_write_raw_P(img_1, sizeof(img_1));
-    // else if(is_layer_locked(2)) oled_write_raw_P(img_2, sizeof(img_2));
-    // else if(is_layer_locked(3)) oled_write_raw_P(img_3, sizeof(img_3));
-
-    switch (get_highest_layer(layer_state)) {
-        case 0:  oled_write_raw_P(img_0, sizeof(img_0)); break;
-        case 1:  oled_write_raw_P(img_1, sizeof(img_1)); break;
-        case 2:  oled_write_raw_P(img_2, sizeof(img_2)); break;
-        case 3:  oled_write_raw_P(img_3, sizeof(img_3)); break;
-        default: break;
+    if     (is_layer_locked(0)) oled_write_raw_P(img_0_box, sizeof(img_0_box));
+    else if(is_layer_locked(1)) oled_write_raw_P(img_1_box, sizeof(img_1_box));
+    else if(is_layer_locked(2)) oled_write_raw_P(img_2_box, sizeof(img_2_box));
+    else if(is_layer_locked(3)) oled_write_raw_P(img_3_box, sizeof(img_3_box));
+    else{
+        switch (get_highest_layer(layer_state)) {
+            case 0:  oled_write_raw_P(img_0, sizeof(img_0)); break;
+            case 1:  oled_write_raw_P(img_1, sizeof(img_1)); break;
+            case 2:  oled_write_raw_P(img_2, sizeof(img_2)); break;
+            case 3:  oled_write_raw_P(img_3, sizeof(img_3)); break;
+            default: break;
+        }
     }
 }
 

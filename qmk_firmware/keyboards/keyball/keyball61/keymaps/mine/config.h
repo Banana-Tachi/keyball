@@ -47,8 +47,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // OLED自動消灯時間 [ms]
 #define OLED_TIMEOUT 20000 // ミリ秒
 
-// // レイヤーロックのタイムアウト
-// #define LAYER_LOCK_IDLE_TIMEOUT 30000  // Turn off after 60 seconds.
+// タップとホールドの時間閾値 [ms]
+// #define TAPPING_TERM 200
+
+// レイヤーロックのタイムアウト
+// #define LAYER_LOCK_IDLE_TIMEOUT 30000  // Turn off after 60 seconds. なんか機能しない
 
 // shiftのダブルタップで大文字入力
 // #define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
