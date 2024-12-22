@@ -243,7 +243,8 @@ void my_oled_ballinfo(void) {
 }
 
 void my_oled_layerinfo(void) {
-    if     (is_layer_locked(0)) oled_write_raw_P(img_0_box, sizeof(img_0_box));
+    if     (is_caps_word_on())  oled_write_raw_P(img_S    , sizeof(img_S));
+    else if(is_layer_locked(0)) oled_write_raw_P(img_0_box, sizeof(img_0_box));
     else if(is_layer_locked(1)) oled_write_raw_P(img_1_box, sizeof(img_1_box));
     else if(is_layer_locked(2)) oled_write_raw_P(img_2_box, sizeof(img_2_box));
     else if(is_layer_locked(3)) oled_write_raw_P(img_3_box, sizeof(img_3_box));

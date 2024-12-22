@@ -7,3 +7,5 @@ VIA_ENABLE = yes
 EXTRAKEY_ENABLE = yes
 
 SRC += ./layer_lock.c
+
+CAPS_WORD_ENABLE = yes

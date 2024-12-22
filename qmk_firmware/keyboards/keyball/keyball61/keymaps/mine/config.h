@@ -56,4 +56,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // shiftのダブルタップで大文字入力
 // #define DOUBLE_TAP_SHIFT_TURNS_ON_CAPS_WORD
 // 左右shift同時押しで大文字入力
-// #define BOTH_SHIFTS_TURNS_ON_CAPS_WORD
+#define BOTH_SHIFTS_TURNS_ON_CAPS_WORD
+// 大文字入力時Shiftを押すと反転
+#define CAPS_WORD_INVERT_ON_SHIFT
