@@ -38,6 +38,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define POINTING_DEVICE_AUTO_MOUSE_ENABLE
 #define AUTO_MOUSE_DEFAULT_LAYER 2
 
+// マウスが止まってから元のレイヤーに戻るまでの時間(ms)
+#define AUTO_MOUSE_TIME 300
+
 // スクロールスナップ無効化
 #define KEYBALL_SCROLLSNAP_ENABLE 0
 
@@ -48,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OLED_TIMEOUT 20000 // ミリ秒
 
 // タップとホールドの時間閾値 [ms]
-#define TAPPING_TERM 150
+#define TAPPING_TERM 100
 
 // レイヤーロックのタイムアウト
 // #define LAYER_LOCK_IDLE_TIMEOUT 30000  // Turn off after 60 seconds. なんか機能しない
