@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_MOUSE_DEFAULT_LAYER 2
 
 // マウスが止まってから元のレイヤーに戻るまでの時間(ms)
-#define AUTO_MOUSE_TIME 300
+#define AUTO_MOUSE_TIME 300 // (default: 500?)
 
 // スクロールスナップ無効化
 #define KEYBALL_SCROLLSNAP_ENABLE 0
@@ -62,3 +62,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BOTH_SHIFTS_TURNS_ON_CAPS_WORD
 // 大文字入力時Shiftを押すと反転
 #define CAPS_WORD_INVERT_ON_SHIFT
+
+// TTで何回タップでレイヤ―固定するか
+#define TAPPING_TOGGLE 2
