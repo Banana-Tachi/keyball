@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define AUTO_MOUSE_DEFAULT_LAYER 2
 
 // マウスが止まってから元のレイヤーに戻るまでの時間(ms)
-#define AUTO_MOUSE_TIME 300 // (default: 500?)
+#define AUTO_MOUSE_TIME 400 // (default: 500?)
 
 // スクロールスナップ無効化
 #define KEYBALL_SCROLLSNAP_ENABLE 0
