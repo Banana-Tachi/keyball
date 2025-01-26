@@ -21,63 +21,57 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 
 #include "./custom_oled.h"
-#include "./layer_lock.h"
+// #include "./layer_lock.h"
 
 // 自作キーコード
 enum custom_keycodes {
     LT_LCTL_SPC = SAFE_RANGE, // Tap/Hold: IME/Layer1 
-    LLOCK,
-    LT_LSFT_L3, // Tap/Hold: Toggle Layer3/LShit
-    LT_RSFT_L3, // Tap/Hold: Toggle Layer3/RShit
+    // LLOCK,
+    // LT_LSFT_L3, // Tap/Hold: Toggle Layer3/LShit
+    // LT_RSFT_L3, // Tap/Hold: Toggle Layer3/RShit
 };
 
-static bool layer_1_active = false;
 static uint16_t lt_timer;
 
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (!process_layer_lock(keycode, record, LLOCK)) {
-        return false;
-    }
+    // if (!process_layer_lock(keycode, record, LLOCK)) {
+    //     return false;
+    // }
     switch (keycode) {
-        case LT_LSFT_L3:
-        case LT_RSFT_L3:
-            if (record->event.pressed) {
-                if (!layer_1_active) {  // shiftを長押し中でない場合のみ
-                    register_code(KC_LSFT);
-                }
-                lt_timer = timer_read();
-                return false;
-            } else {
-                unregister_code(KC_LSFT);
-                if (timer_elapsed(lt_timer) < TAPPING_TERM) {
-                    layer_invert(3);  // タップでレイヤー3をトグル
-                }
-                return false;
-            }
-            break;
+        // case LT_LSFT_L3:
+        // case LT_RSFT_L3:
+        //     if (record->event.pressed) {
+        //         if (!layer_1_active) {  // shiftを長押し中でない場合のみ
+        //             register_code(KC_LSFT);
+        //         }
+        //         lt_timer = timer_read();
+        //         return false;
+        //     } else {
+        //         unregister_code(KC_LSFT);
+        //         if (timer_elapsed(lt_timer) < TAPPING_TERM) {
+        //             layer_invert(3);  // タップでレイヤー3をトグル
+        //         }
+        //         return false;
+        //     }
+        //     break;
         case LT_LCTL_SPC:
             if (record->event.pressed) {
-                // キーを押した時
-                if (!is_layer_locked(1)) {  // レイヤー1がロックされていない場合のみ
-                    layer_1_active = true;
-                    layer_on(1);  // レイヤー1をオン
-                }
+                // キーを押した瞬間
                 lt_timer = timer_read();
-                return false;
+                layer_on(1);  // レイヤー1をオン
             } else {
-                // キーを離した時
-                if (!is_layer_locked(1)) {  // レイヤー1がロックされていない場合のみ
-                    layer_1_active = false;
-                    layer_off(1); // レイヤー1をオフ
-                }
-                
+                // キーを離した瞬間
                 if (timer_elapsed(lt_timer) < TAPPING_TERM) {
                     // タップした場合（素早く押し離した場合）
                     tap_code16(LCTL(KC_SPACE));
                 }
-                return false;
+                // if (!is_layer_locked(1)) { // レイヤー1がロックされていない場合のみ
+                //     layer_off(1); // レイヤー1をオフ
+                // }
+                layer_off(1); // レイヤー1をオフ
             }
+            return false;
             break;
     }
     return true;
@@ -90,7 +84,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB , KC_Q   , KC_W   , KC_E                       , KC_R       , KC_T  ,                               KC_Y   , KC_U   , KC_I   , KC_O   , KC_P         , KC_MINS,
     KC_LSFT, KC_A   , KC_S   , KC_D                       , KC_F       , KC_G  ,                               KC_H   , KC_J   , KC_K   , KC_L   , LT(2,KC_SCLN), KC_QUOT,
     KC_LCTL, KC_Z   , KC_X   , KC_C                       , KC_V       , KC_B  , TT(3)        , KC_RSFT      , KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH      , KC_RSFT,
-    KC_LCTL, KC_LWIN, KC_LALT,MT(MOD_LCTL|MOD_LSFT,KC_ESC), LT_LCTL_SPC, KC_SPC, TT(2)        , KC_ENT       , KC_BSPC, KC_NO  , KC_NO  , KC_NO  , LT(1,KC_BSLS), KC_RCTL
+    TG(2)  , KC_LWIN, KC_LALT,MT(MOD_LCTL|MOD_LSFT,KC_ESC), LT_LCTL_SPC, KC_SPC, MO(2)        , KC_ENT       , KC_BSPC, KC_NO  , KC_NO  , KC_NO  , LT(1,KC_BSLS), KC_RCTL
   ),
 
   [1] = LAYOUT_universal(
@@ -98,7 +92,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, S(KC_BSLS), KC_BSLS, S(KC_EQL), KC_EQL , _______,                   KC_LBRC, KC_RBRC,S(KC_LBRC),S(KC_RBRC), KC_PSCR, KC_F12 ,
     _______, C(KC_A)   , C(KC_S), _______  , C(KC_F), _______,                   KC_LEFT, KC_DOWN,  KC_UP   ,  KC_RGHT , _______, _______,
     _______, C(KC_Z)   , C(KC_X), C(KC_C)  , C(KC_V), _______, _______, KC_DEL , S(KC_9), S(KC_0),S(KC_LBRC),S(KC_RBRC), _______, _______,
-    LLOCK  , _______   , _______, _______  , _______, _______, _______, _______, _______, _______,  _______ , _______  , _______, _______
+    _______, _______   , _______, _______  , _______, _______, _______, _______, _______, _______,  _______ , _______  , _______, _______
   ),
 
   [2] = LAYOUT_universal(
@@ -106,7 +100,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, KC_WREF, KC_WSCH, KC_BRID, KC_BRIU, KC_MNXT,                   CPI_D100  , CPI_I100  , SCRL_TO   , _______ , SCRL_DVD, KC_MINS,
     _______, C(KC_A), KC_MUTE, KC_VOLD, KC_VOLU, KC_MPLY,                   AML_TO    , KC_BTN1   , SCRL_MO , KC_BTN2 , KC_NO   , _______,
     _______, C(KC_Z), C(KC_X), C(KC_C), C(KC_V), KC_MPRV, _______, KC_RSFT, A(KC_RGHT), A(KC_LEFT), KC_BTN3 , KC_NO   , SCRL_DVI, _______,
-    LLOCK  , _______, _______, _______, _______, _______, _______, _______, _______   , _______   , _______ , _______ , _______ , _______
+    _______, _______, _______, _______, _______, _______, _______, _______, _______   , _______   , _______ , _______ , _______ , _______
   ),
 
   [3] = LAYOUT_universal(
@@ -114,7 +108,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     S(KC_GRV), S(KC_1), S(KC_2), S(KC_3), S(KC_4), S(KC_5),                  S(KC_6), S(KC_7), S(KC_8), S(KC_9), S(KC_0), S(KC_EQL) ,
       KC_GRV ,   KC_1 ,   KC_2 ,   KC_3 ,   KC_4 ,   KC_5 ,                    KC_6 ,   KC_7 ,   KC_8 ,   KC_9 ,   KC_0 , KC_EQL ,
     _______  ,   KC_F1,   KC_F2,   KC_F3,   KC_F4,  KC_F5 , _______, _______,  KC_F6,   KC_F7,   KC_F8,   KC_F9,  KC_F10, KC_MINS ,
-    LLOCK    , _______, _______, _______, _______, _______, _______, _______,_______, _______, _______, _______,  KC_F11, S(KC_MINS)
+    _______  , _______, _______, _______, _______, _______, _______, _______,_______, _______, _______, _______,  KC_F11, S(KC_MINS)
   ),
 };
 // clang-format on
@@ -225,10 +219,10 @@ void my_oled_ballinfo(void) {
 void my_oled_layerinfo(void) {
     const char *img;
     if      (is_caps_word_on())  img = img_S;
-    else if (is_layer_locked(0)) img = img_0_box;
-    else if (is_layer_locked(1)) img = img_1_box;
-    else if (is_layer_locked(2)) img = img_2_box;
-    else if (is_layer_locked(3)) img = img_3_box;
+    // else if (is_tt_layer_locked(0)) img = img_0_box;
+    // else if (is_tt_layer_locked(1)) img = img_1_box;
+    // else if (is_tt_layer_locked(2)) img = img_2_box;
+    // else if (is_tt_layer_locked(3)) img = img_3_box;
     else {
         static const char *const layer_imgs[] = {img_0, img_1, img_2, img_3};
         img = layer_imgs[get_highest_layer(layer_state)];

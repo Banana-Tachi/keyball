@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OLED_TIMEOUT 20000 // ミリ秒
 
 // タップとホールドの時間閾値 [ms]
-#define TAPPING_TERM 100
+#define TAPPING_TERM 150
 
 // レイヤーロックのタイムアウト
 // #define LAYER_LOCK_IDLE_TIMEOUT 30000  // Turn off after 60 seconds. なんか機能しない
