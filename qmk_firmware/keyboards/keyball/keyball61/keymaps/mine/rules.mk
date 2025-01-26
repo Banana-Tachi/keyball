@@ -6,6 +6,8 @@ VIA_ENABLE = yes
 
 EXTRAKEY_ENABLE = yes
 
-SRC += ./layer_lock.c
+# SRC += ./layer_lock.c
+
+# LAYER_LOCK_ENABLE = yes
 
 CAPS_WORD_ENABLE = yes

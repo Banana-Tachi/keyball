@@ -219,10 +219,10 @@ void my_oled_ballinfo(void) {
 void my_oled_layerinfo(void) {
     const char *img;
     if      (is_caps_word_on())  img = img_S;
-    // else if (is_tt_layer_locked(0)) img = img_0_box;
-    // else if (is_tt_layer_locked(1)) img = img_1_box;
-    // else if (is_tt_layer_locked(2)) img = img_2_box;
-    // else if (is_tt_layer_locked(3)) img = img_3_box;
+    // else if (is_layer_locked(0)) img = img_0_box;
+    // else if (is_layer_locked(1)) img = img_1_box;
+    // else if (is_layer_locked(2)) img = img_2_box;
+    // else if (is_layer_locked(3)) img = img_3_box;
     else {
         static const char *const layer_imgs[] = {img_0, img_1, img_2, img_3};
         img = layer_imgs[get_highest_layer(layer_state)];
