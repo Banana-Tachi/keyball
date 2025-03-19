@@ -62,6 +62,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BOTH_SHIFTS_TURNS_ON_CAPS_WORD
 // 大文字入力時Shiftを押すと反転
 #define CAPS_WORD_INVERT_ON_SHIFT
+// Caps Wordのタイムアウト
+#define CAPS_WORD_IDLE_TIMEOUT 3000
 
 // TTで何回タップでレイヤ―固定するか
 #define TAPPING_TOGGLE 2

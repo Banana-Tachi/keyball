@@ -29,6 +29,7 @@ enum custom_keycodes {
     // LLOCK,
     // LT_LSFT_L3, // Tap/Hold: Toggle Layer3/LShit
     // LT_RSFT_L3, // Tap/Hold: Toggle Layer3/RShit
+    RSFT_CWTG, // Hold: RShift, Tap: CW_Toggle
 };
 
 static uint16_t lt_timer;
@@ -73,6 +74,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
             break;
+        case RSFT_CWTG:
+            if (record->event.pressed) {
+                // キーを押した瞬間
+                lt_timer = timer_read();
+                register_code(KC_RSFT); // 右シフト
+            } else {
+                unregister_code(KC_RSFT);
+                // キーを離した瞬間
+                if (timer_elapsed(lt_timer) < TAPPING_TERM) {
+                    // タップされた場合、CW_TOGGとして処理
+                    // tap_code16(CW_TOGG);
+                    caps_word_toggle();
+                }
+            }
+            return false; // QMKの通常の処理を行わない
+            break;
     }
     return true;
 }
@@ -80,11 +97,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_universal(
-    KC_GRV , KC_1   , KC_2   , KC_3                       , KC_4       , KC_5  ,                               KC_6   , KC_7   , KC_8   , KC_9   , KC_0         , KC_EQL ,
-    KC_TAB , KC_Q   , KC_W   , KC_E                       , KC_R       , KC_T  ,                               KC_Y   , KC_U   , KC_I   , KC_O   , KC_P         , KC_MINS,
-    KC_LSFT, KC_A   , KC_S   , KC_D                       , KC_F       , KC_G  ,                               KC_H   , KC_J   , KC_K   , KC_L   , LT(2,KC_SCLN), KC_QUOT,
-    KC_LCTL, KC_Z   , KC_X   , KC_C                       , KC_V       , KC_B  , TT(3)        , KC_RSFT      , KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH      , KC_RSFT,
-    TG(2)  , KC_LWIN, KC_LALT,MT(MOD_LCTL|MOD_LSFT,KC_ESC), LT_LCTL_SPC, KC_SPC, MO(2)        , KC_ENT       , KC_BSPC, KC_NO  , KC_NO  , KC_NO  , LT(1,KC_BSLS), KC_RCTL
+    KC_GRV , KC_1   , KC_2   , KC_3                       , KC_4       , KC_5  ,                           KC_6   , KC_7   , KC_8   , KC_9   , KC_0         , KC_EQL ,
+    KC_TAB , KC_Q   , KC_W   , KC_E                       , KC_R       , KC_T  ,                           KC_Y   , KC_U   , KC_I   , KC_O   , KC_P         , KC_MINS,
+    KC_LSFT, KC_A   , KC_S   , KC_D                       , KC_F       , KC_G  ,                           KC_H   , KC_J   , KC_K   , KC_L   , LT(2,KC_SCLN), KC_QUOT,
+    KC_LCTL, KC_Z   , KC_X   , KC_C                       , KC_V       , KC_B  , TT(3)        , RSFT_CWTG, KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH      , KC_RSFT,
+    TG(2)  , KC_LWIN, KC_LALT,MT(MOD_LCTL|MOD_LSFT,KC_ESC), LT_LCTL_SPC, KC_SPC, MO(2)        , KC_ENT   , KC_BSPC, KC_NO  , KC_NO  , KC_NO  , LT(2,KC_BSLS), KC_RCTL
   ),
 
   [1] = LAYOUT_universal(
@@ -96,19 +113,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   [2] = LAYOUT_universal(
-    _______, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6      , KC_7      , KC_8    , KC_9    , KC_0    , KC_EQL ,
-    _______, KC_WREF, KC_WSCH, KC_BRID, KC_BRIU, KC_MNXT,                   CPI_D100  , CPI_I100  , SCRL_TO   , _______ , SCRL_DVD, KC_MINS,
-    _______, C(KC_A), KC_MUTE, KC_VOLD, KC_VOLU, KC_MPLY,                   AML_TO    , KC_BTN1   , SCRL_MO , KC_BTN2 , KC_NO   , _______,
-    _______, C(KC_Z), C(KC_X), C(KC_C), C(KC_V), KC_MPRV, _______, KC_RSFT, A(KC_RGHT), A(KC_LEFT), KC_BTN3 , KC_NO   , SCRL_DVI, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______   , _______   , _______ , _______ , _______ , _______
+    _______, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                      KC_6      , KC_7      , KC_8    , KC_9    , KC_0    , KC_EQL ,
+    _______, KC_WREF, KC_WSCH, KC_BRID, KC_BRIU, KC_MNXT,                      CPI_D100  , CPI_I100  , SCRL_TO , _______ , SCRL_DVD, KC_MINS,
+    _______, C(KC_A), KC_MUTE, KC_VOLD, KC_VOLU, KC_MPLY,                      AML_TO    , KC_BTN1   , SCRL_MO , KC_BTN2 , KC_NO   , _______,
+    _______, C(KC_Z), C(KC_X), C(KC_C), C(KC_V), KC_MPRV, _______, RSFT_CWTG , A(KC_RGHT), A(KC_LEFT), KC_BTN3 , KC_NO   , SCRL_DVI, _______,
+    TG(2)  , _______, _______, _______, _______, _______, _______, _______   , _______   , _______   , _______ , _______ , SCRL_MO , _______
   ),
 
   [3] = LAYOUT_universal(
       KC_GRV ,   KC_1 ,   KC_2 ,   KC_3 ,   KC_4 ,   KC_5 ,                    KC_6 ,   KC_7 ,   KC_8 ,   KC_9 ,   KC_0 , KC_F12 ,
     S(KC_GRV), S(KC_1), S(KC_2), S(KC_3), S(KC_4), S(KC_5),                  S(KC_6), S(KC_7), S(KC_8), S(KC_9), S(KC_0), S(KC_EQL) ,
       KC_GRV ,   KC_1 ,   KC_2 ,   KC_3 ,   KC_4 ,   KC_5 ,                    KC_6 ,   KC_7 ,   KC_8 ,   KC_9 ,   KC_0 , KC_EQL ,
-    _______  ,   KC_F1,   KC_F2,   KC_F3,   KC_F4,  KC_F5 , _______, _______,  KC_F6,   KC_F7,   KC_F8,   KC_F9,  KC_F10, KC_MINS ,
-    _______  , _______, _______, _______, _______, _______, _______, _______,_______, _______, _______, _______,  KC_F11, S(KC_MINS)
+    _______  ,   KC_F1,   KC_F2,   KC_F3,   KC_F4,  KC_F5 , _______, _______,  KC_F6,   KC_F7,   KC_F8,   KC_F9,  KC_F10, _______,
+    _______  , _______, _______, _______, _______, _______, _______, _______,_______, _______, _______, _______,  KC_F11, _______
   ),
 };
 // clang-format on
@@ -218,15 +235,19 @@ void my_oled_ballinfo(void) {
 
 void my_oled_layerinfo(void) {
     const char *img;
-    if      (is_caps_word_on())  img = img_S;
+    // if      (is_caps_word_on())  img = img_S;
     // else if (is_layer_locked(0)) img = img_0_box;
     // else if (is_layer_locked(1)) img = img_1_box;
     // else if (is_layer_locked(2)) img = img_2_box;
     // else if (is_layer_locked(3)) img = img_3_box;
-    else {
-        static const char *const layer_imgs[] = {img_0, img_1, img_2, img_3};
-        img = layer_imgs[get_highest_layer(layer_state)];
-    }
+    // else {
+    //     static const char *const layer_imgs[] = {img_0, img_1, img_2, img_3};
+    //     img = layer_imgs[get_highest_layer(layer_state)];
+    // }
+    static const char *const layer_imgs[] = {img_0, img_1, img_2, img_3};
+    img = layer_imgs[get_highest_layer(layer_state)];
+    if(is_caps_word_on()) img = img_S;
+    // else if (is_layer_locked(0)) img = img_0_box;
     oled_write_raw_P(img, sizeof(img_0)); // 全ての画像は同じサイズと仮定
 }
 
