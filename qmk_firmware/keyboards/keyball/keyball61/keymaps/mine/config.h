@@ -66,4 +66,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CAPS_WORD_IDLE_TIMEOUT 3000
 
 // TTで何回タップでレイヤ―固定するか
-#define TAPPING_TOGGLE 2
+#define TAPPING_TOGGLE 1
